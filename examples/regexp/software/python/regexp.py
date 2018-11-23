@@ -332,7 +332,7 @@ if __name__ == "__main__":
         t.stop()
         t_ftot.append(t.seconds())
 
-        print("Total runtimes for " + str(ne) + " runs:")
+        print("Total runtimes for " + str(e+1) + " runs:")
         print("Python list on CPU (re): " + str(sum(t_py_pyre)))
         print("Pandas series on CPU (re): " + str(sum(t_pa_pyre)))
         print("Python list on CPU (Pyre2): " + str(sum(t_py_pyre2)))

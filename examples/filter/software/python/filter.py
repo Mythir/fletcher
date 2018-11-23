@@ -146,7 +146,7 @@ def get_filter_output_rb(offsets_buffer_size, values_buffer_size):
 
 
 def filter_record_batch_fpga(batch_in, zip_code, platform_type, offsets_buffer_out_size, values_buffer_out_size, t_copy,
-                             t_fpga):
+                             t_fpga, t_d2h):
     t = Timer()
     platform = pf.Platform(platform_type)
     context = pf.Context(platform)
@@ -165,7 +165,6 @@ def filter_record_batch_fpga(batch_in, zip_code, platform_type, offsets_buffer_o
     t.stop()
     t_copy.append(t.seconds())
     uc.set_range(0, batch_in.num_rows)
-    uc.set_arguments([zip_code])
 
     t.start()
     uc.start()
@@ -173,10 +172,13 @@ def filter_record_batch_fpga(batch_in, zip_code, platform_type, offsets_buffer_o
     t.stop()
     t_fpga.append(t.seconds())
 
+    t.start()
     platform.copy_device_to_host(context.get_buffer_device_address(3, 0), offsets_buffer_out_size,
                            batch_out.column(0).buffers()[1])
     platform.copy_device_to_host(context.get_buffer_device_address(3, 1), values_buffer_out_size,
                                  batch_out.column(0).buffers()[2])
+    t.stop()
+    t_d2h.append(t.seconds())
 
     return batch_out
 
@@ -217,6 +219,7 @@ if __name__ == "__main__":
     t_fpga = []
     t_copy = []
     t_ftot = []
+    t_d2h = []
 
     # Results
     r_pd_py = []
@@ -235,6 +238,15 @@ if __name__ == "__main__":
         batch_fast = create_batch_from_frame_fast(frame, ser_threads)
         t.stop()
         t_ser_fast.append(t.seconds())
+
+    batch_size = 0
+    for i in range(len(frame.columns)):
+        column = batch_basic.column(i)
+        for buffer in column.buffers():
+            if buffer is not None:
+                batch_size += buffer.size
+
+    print("Total size of Arrow RecordBatch: {bytes} bytes.".format(bytes=batch_size))
 
     print("Total Pandas to Arrow serialization times for " + str(ne) + " runs: ")
     print("Pandas to Arrow using from_arrays(): " + str(sum(t_ser_basic)))
@@ -272,11 +284,11 @@ if __name__ == "__main__":
                                                r_pa_cpp[0].column(0).buffers()[1].size,
                                                r_pa_cpp[0].column(0).buffers()[2].size,
                                                t_copy,
-                                               t_fpga))
+                                               t_fpga, t_d2h))
         t.stop()
         t_ftot.append(t.seconds())
 
-        print("Total execution times for " + str(ne) + " runs:")
+        print("Total execution times for " + str(i+1) + " runs:")
         print("Pandas pure Python filtering: " + str(sum(t_pd_py)))
         print("Pandas Cython (?) filtering: " + str(sum(t_pd_cy)))
         print("Arrow pure Python filtering: " + str(sum(t_pa_py)))
@@ -284,6 +296,7 @@ if __name__ == "__main__":
         print("Filter Arrow FPGA copy time: " + str(sum(t_copy)))
         print("Filter Arrow FPGA algorithm time: " + str(sum(t_fpga)))
         print("Filter Arrow FPGA total time: " + str(sum(t_ftot)))
+        print("Filter Arrow FPGA d2h time: " + str(sum(t_d2h)))
         print()
         print("Average execution times:")
         print("Pandas pure Python filtering: " + str(sum(t_pd_py) / (i + 1)))
@@ -293,6 +306,7 @@ if __name__ == "__main__":
         print("Filter Arrow FPGA copy time: " + str(sum(t_copy)/(i+1)))
         print("Filter Arrow FPGA algorithm time: " + str(sum(t_fpga)/(i+1)))
         print("Filter Arrow FPGA total time: " + str(sum(t_ftot)/(i+1)))
+        print("Filter Arrow FPGA d2h time: " + str(sum(t_d2h)/(i+1)))
 
     with open("Output.txt", "w") as textfile:
         textfile.write("\nTotal execution times for " + str(ne) + " runs:")
@@ -303,15 +317,17 @@ if __name__ == "__main__":
         textfile.write("\nFilter Arrow FPGA copy time: " + str(sum(t_copy)))
         textfile.write("\nFilter Arrow FPGA algorithm time: " + str(sum(t_fpga)))
         textfile.write("\nFilter Arrow FPGA total time: " + str(sum(t_ftot)))
+        textfile.write("\nFilter Arrow FPGA d2h time: " + str(sum(t_d2h)))
         textfile.write("\n")
         textfile.write("\nAverage execution times:")
         textfile.write("\nPandas pure Python filtering: " + str(sum(t_pd_py) / ne))
         textfile.write("\nPandas Cython (?) filtering: " + str(sum(t_pd_cy) / ne))
         textfile.write("\nArrow pure Python filtering: " + str(sum(t_pa_py) / ne))
         textfile.write("\nArrow CPP filtering: " + str(sum(t_pa_cpp) / ne))
-        textfile.write("\nFilter Arrow FPGA copy time: " + str(sum(t_copy)/(i+1)))
-        textfile.write("\nFilter Arrow FPGA algorithm time: " + str(sum(t_fpga)/(i+1)))
-        textfile.write("\nFilter Arrow FPGA total time: " + str(sum(t_ftot)/(i+1)))
+        textfile.write("\nFilter Arrow FPGA copy time: " + str(sum(t_copy)/ne))
+        textfile.write("\nFilter Arrow FPGA algorithm time: " + str(sum(t_fpga)/ne))
+        textfile.write("\nFilter Arrow FPGA total time: " + str(sum(t_ftot)/ne))
+        textfile.write("\nFilter Arrow FPGA d2h time: " + str(sum(t_d2h)/ne))
 
     # Check if results are equal.
     pass_counter = 0

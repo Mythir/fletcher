@@ -386,7 +386,7 @@ if __name__ == "__main__":
         t.stop()
         t_ftot.append(t.seconds())
 
-        print("Total runtimes for " + str(ne) + " runs:")
+        print("Total runtimes for " + str(i+1) + " runs:")
         print("Kmeans native list pure Python execution time: " + str(sum(t_napy)))
         print("Kmeans NumPy pure Python execution time: " + str(sum(t_nppy)))
         print("Kmeans Arrow pure Python execution time: " + str(sum(t_arpy)))
