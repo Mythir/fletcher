@@ -19,6 +19,7 @@ import numpy as np
 import copy
 import sys
 import argparse
+import pandas as pd
 
 import pyfletcher as pf
 import stringwrite
@@ -47,16 +48,16 @@ if __name__ == "__main__":
     t = Timer(gc_disable=False)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_exp", dest="ne", default=1,
+    parser.add_argument("--num_exp", dest="ne", default=4,
                         help="Number of experiments to perform")
     parser.add_argument("--platform_type", dest="platform_type", default="echo", choices=["echo", "aws"],
                         help="Type of FPGA platform")
-    parser.add_argument("--num_strings", dest="num_strings", default=20,
-                        help="Number of points in coordinate system")
+    parser.add_argument("--num_strings", dest="num_strings", default=6000,
+                        help="Number of strings to deserialize")
     parser.add_argument("--min_len", dest="min_len", default=0,
                         help="Minimum string length")
     parser.add_argument("--len_msk", dest="len_msk", default=255,
-                        help="Max number of k-means iterations")
+                        help="Length mask")
     args = parser.parse_args()
 
     # Parsed args
@@ -66,22 +67,82 @@ if __name__ == "__main__":
     len_msk = int(args.len_msk)
     platform_type = args.platform_type
 
+    # Timers
+    t = Timer(gc_disable=False)
+    t_pa = []
+    t_pd = []
+    t_py = []
+
+    # Results
+    r_pa = []
+    r_pd = []
+    r_py = []
+
     (lengths, values) = stringwrite.get_random_lengths_and_values(num_strings, min_len, len_msk)
 
-    print(lengths.tobytes())
-    print(values.tobytes())
+    assert(sum(lengths) == len(values))
 
-    print(sum(lengths))
-    print(len(values))
+    print("Average length: " + str(sum(lengths)/len(lengths)))
 
-    testarray = stringwrite.deserialize_to_arrow(lengths, values)
+    for i in range(ne):
+        print("Starting experiment " + str(i))
+        t.start()
+        r_pa.append(stringwrite.deserialize_to_arrow(lengths, values))
+        t.stop()
+        t_pa.append(t.seconds())
 
-    print(testarray)
-    print(testarray.buffers()[1].size)
-    print(testarray.buffers()[2].size)
+        t.start()
+        r_py.append(stringwrite.deserialize_to_list(lengths, values))
+        t.stop()
+        t_py.append(t.seconds())
 
-    testlist = stringwrite.deserialize_to_list(lengths, values)
+        t.start()
+        r_pd.append(stringwrite.deserialize_to_pandas(lengths, values))
+        t.stop()
+        t_pd.append(t.seconds())
 
-    print(testlist)
+        print("Total execution times for " + str(i+1) + " runs:")
+        print("Pandas: " + str(sum(t_pd)))
+        print("Native: " + str(sum(t_py)))
+        print("Arrow: " + str(sum(t_pa)))
+        print()
+        print("Average execution times:")
+        print("Pandas: " + str(sum(t_pd) / (i + 1)))
+        print("Native: " + str(sum(t_py) / (i + 1)))
+        print("Arrow: " + str(sum(t_pa) / (i + 1)))
+        print()
 
-    testseries = stringwrite.deserialize_to_pandas(lengths, values)
+    with open("Output.txt", "w") as textfile:
+        textfile.write("\nTotal execution times for " + str(ne) + " runs:")
+        textfile.write("\nPandas: " + str(sum(t_pd)))
+        textfile.write("\nNative: " + str(sum(t_py)))
+        textfile.write("\nArrow: " + str(sum(t_pa)))
+        textfile.write("\n")
+        textfile.write("\nAverage execution times:")
+        textfile.write("\nPandas: " + str(sum(t_pd) / (i + 1)))
+        textfile.write("\nNative: " + str(sum(t_py) / (i + 1)))
+        textfile.write("\nArrow: " + str(sum(t_pa) / (i + 1)))
+
+    # Find total size in bytes of Arrow array
+    batch_size = 0
+    for buffer in r_pa[0].buffers():
+        if buffer is not None:
+            batch_size += buffer.size
+
+    print("Total size of Arrow Array: {bytes} bytes.".format(bytes=batch_size))
+
+    pass_counter = 0
+    cross_exp_pass_counter = 0
+
+    for i in range(ne):
+        if r_pa[i].equals(pa.array([x.decode("utf-8") for x in r_pd[i]])) \
+                and r_pa[i].equals(pa.array([x.decode("utf-8") for x in r_py[i]])):
+            pass_counter += 1
+
+        if r_pa[0].equals(r_pa[i]):
+            cross_exp_pass_counter += 1
+
+    if pass_counter == ne and cross_exp_pass_counter == ne:
+        print("PASS")
+    else:
+        print("ERROR ({error_counter} errors)".format(error_counter=ne - pass_counter))

@@ -203,7 +203,7 @@ if __name__ == "__main__":
     t = Timer(gc_disable=False)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_exp", dest="ne", default=1,
+    parser.add_argument("--num_exp", dest="ne", default=3,
                         help="Number of experiments to perform")
     parser.add_argument("--input_strings", dest="input_file", default="../build/strings1024.dat",
                         help="Path to file with strings to search through")
@@ -229,6 +229,7 @@ if __name__ == "__main__":
     t_py_pyre = []
     t_pa_pyre2 = []
     t_py_pyre2 = []
+    t_py_cy_pyre2 = []
     t_ar_pyre2 = []
     t_ar_cppre = []
     t_ar_cppre_omp = []
@@ -244,6 +245,7 @@ if __name__ == "__main__":
     m_py_pyre = []
     m_pa_pyre2 = []
     m_py_pyre2 = []
+    m_py_cy_pyre2 = []
     m_ar_pyre2 = []
     m_ar_cppre = []
     m_ar_cppre_omp = []
@@ -296,11 +298,17 @@ if __name__ == "__main__":
         t.stop()
         t_py_pyre2.append(t.seconds())
 
+        # Match Python list on CPU using Pyre2 anc cython
+        t.start()
+        m_py_cy_pyre2.append(re2_arrow.add_matches_cython_re2(strings_native, regexes))
+        t.stop()
+        t_py_cy_pyre2.append(t.seconds())
+
         print("Starting pa_pyre2")
 
         # Match Pandas series on CPU using Pyre2 (marginal performance improvement most likely possible with Cython)
         t.start()
-        m_pa_pyre2.append(add_matches_cpu_re2(strings_pandas, regexes))
+        #m_pa_pyre2.append(add_matches_cpu_re2(strings_pandas, regexes))
         t.stop()
         t_pa_pyre2.append(t.seconds())
 
@@ -336,6 +344,7 @@ if __name__ == "__main__":
         print("Python list on CPU (re): " + str(sum(t_py_pyre)))
         print("Pandas series on CPU (re): " + str(sum(t_pa_pyre)))
         print("Python list on CPU (Pyre2): " + str(sum(t_py_pyre2)))
+        print("Python list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2)))
         print("Pandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2)))
         print("Arrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2)))
         print("Arrow array on CPU (CPP Re2): " + str(sum(t_ar_cppre)))
@@ -348,6 +357,7 @@ if __name__ == "__main__":
         print("Python list on CPU (re): " + str(sum(t_py_pyre)/(e+1)))
         print("Pandas series on CPU (re): " + str(sum(t_pa_pyre)/(e+1)))
         print("Python list on CPU (Pyre2): " + str(sum(t_py_pyre2)/(e+1)))
+        print("Python list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2)/(e+1)))
         print("Pandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2)/(e+1)))
         print("Arrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2)/(e+1)))
         print("Arrow array on CPU (CPP Re2): " + str(sum(t_ar_cppre)/(e+1)))
@@ -361,6 +371,7 @@ if __name__ == "__main__":
         text_file.write("\nPython list on CPU (re): " + str(sum(t_py_pyre)))
         text_file.write("\nPandas series on CPU (re): " + str(sum(t_pa_pyre)))
         text_file.write("\nPython list on CPU (Pyre2): " + str(sum(t_py_pyre2)))
+        text_file.write("\nPython list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2)))
         text_file.write("\nPandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2)))
         text_file.write("\nArrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2)))
         text_file.write("\nArrow array on CPU (CPP Re2): " + str(sum(t_ar_cppre)))
@@ -373,6 +384,7 @@ if __name__ == "__main__":
         text_file.write("\nPython list on CPU (re): " + str(sum(t_py_pyre) / ne))
         text_file.write("\nPandas series on CPU (re): " + str(sum(t_pa_pyre) / ne))
         text_file.write("\nPython list on CPU (Pyre2): " + str(sum(t_py_pyre2) / ne))
+        text_file.write("\nPython list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2) / ne))
         text_file.write("\nPandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2) / ne))
         text_file.write("\nArrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2) / ne))
         text_file.write("\nArrow array on CPU (CPP Re2): " + str(sum(t_ar_cppre) / ne))
@@ -385,6 +397,7 @@ if __name__ == "__main__":
     a_py_pyre = [0] * np
     a_pa_pyre = [0] * np
     a_py_pyre2 = [0] * np
+    a_py_cy_pyre2 = [0] * np
     a_pa_pyre2 = [0] * np
     a_ar_pyre2 = [0] * np
     a_ar_cppre = [0] * np
@@ -392,16 +405,18 @@ if __name__ == "__main__":
     a_fpga = [0] * np
 
     # Todo: Temporary shortcut
-    m_py_pyre = m_pa_pyre2
-    m_pa_pyre = m_pa_pyre2
-    m_ar_pyre2 = m_pa_pyre2
-    m_ar_cppre = m_pa_pyre2
+    m_py_pyre = m_ar_cppre_omp
+    m_pa_pyre = m_ar_cppre_omp
+    m_ar_pyre2 = m_ar_cppre_omp
+    m_ar_cppre = m_ar_cppre_omp
+    m_pa_pyre2 = m_ar_cppre_omp
 
     for p in range(np):
         for e in range(ne):
             a_py_pyre[p] += m_py_pyre[e][p]
             a_pa_pyre[p] += m_pa_pyre[e][p]
             a_py_pyre2[p] += m_py_pyre2[e][p]
+            a_py_cy_pyre2[p] += m_py_cy_pyre2[e][p]
             a_pa_pyre2[p] += m_pa_pyre2[e][p]
             a_ar_pyre2[p] += m_ar_pyre2[e][p]
             a_ar_cppre[p] += m_ar_cppre[e][p]
@@ -415,6 +430,7 @@ if __name__ == "__main__":
             and (a_py_pyre == a_pa_pyre) \
             and (a_pa_pyre == a_ar_cppre)\
             and (a_ar_cppre == a_ar_cppre_omp)\
+            and (a_py_cy_pyre2 == a_ar_cppre_omp) \
             and (a_ar_cppre_omp == a_fpga):
         print("PASS")
     else:

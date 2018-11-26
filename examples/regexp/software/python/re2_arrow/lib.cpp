@@ -3149,6 +3149,23 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
         __Pyx__ArgTypeTest(obj, type, name, exact))
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
 
+/* ListAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
+        Py_INCREF(x);
+        PyList_SET_ITEM(list, len, x);
+        Py_SIZE(list) = len+1;
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
+#endif
+
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
 #define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
@@ -3363,23 +3380,6 @@ static CYTHON_INLINE int __Pyx_PyList_Extend(PyObject* L, PyObject* v) {
     return PyList_SetSlice(L, PY_SSIZE_T_MAX, PY_SSIZE_T_MAX, v);
 #endif
 }
-
-/* ListAppend.proto */
-#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
-        Py_INCREF(x);
-        PyList_SET_ITEM(list, len, x);
-        Py_SIZE(list) = len+1;
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
-#endif
 
 /* None.proto */
 static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
@@ -3912,6 +3912,7 @@ static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
 static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cython_re2(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
 static std::string __pyx_convert_string_from_py_std__in_string(PyObject *); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
@@ -3970,6 +3971,7 @@ static const char __pyx_k_np[] = "np";
 static const char __pyx_k_u4[] = "u4";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
+static const char __pyx_k_re2[] = "re2";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_main[] = "__main__";
@@ -4002,6 +4004,7 @@ static const char __pyx_k_struct[] = "struct";
 static const char __pyx_k_tolist[] = "tolist";
 static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_update[] = "update";
+static const char __pyx_k_compile[] = "compile";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_regexes[] = "regexes";
@@ -4027,6 +4030,7 @@ static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
+static const char __pyx_k_test_fullmatch[] = "test_fullmatch";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
@@ -4100,6 +4104,7 @@ static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
 static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_n_s_cline_in_traceback;
+static PyObject *__pyx_n_s_compile;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
 static PyObject *__pyx_n_s_dict;
@@ -4144,6 +4149,7 @@ static PyObject *__pyx_n_s_pyx_type;
 static PyObject *__pyx_n_s_pyx_unpickle_Enum;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_range;
+static PyObject *__pyx_n_s_re2;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
@@ -4162,6 +4168,7 @@ static PyObject *__pyx_n_s_strings;
 static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_test_fullmatch;
 static PyObject *__pyx_n_s_tolist;
 static PyObject *__pyx_n_s_u4;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
@@ -4172,7 +4179,8 @@ static PyObject *__pyx_n_s_update;
 static PyObject *__pyx_kp_s_utf_8;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_9re2_arrow_3lib_add_matches_cpp_arrow(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes); /* proto */
-static PyObject *__pyx_pf_9re2_arrow_3lib_2add_matches_cpp_arrow_omp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes); /* proto */
+static PyObject *__pyx_pf_9re2_arrow_3lib_2add_matches_cython_re2(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes); /* proto */
+static PyObject *__pyx_pf_9re2_arrow_3lib_4add_matches_cpp_arrow_omp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -4260,7 +4268,7 @@ static PyObject *__pyx_tuple__32;
 static PyObject *__pyx_codeobj__33;
 /* Late includes */
 
-/* "re2_arrow/lib.pyx":34
+/* "re2_arrow/lib.pyx":35
  * 
  * # Single core efficient regex matching for Arrow
  * cpdef add_matches_cpp_arrow(strings, list regexes):             # <<<<<<<<<<<<<<
@@ -4291,7 +4299,7 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
   Py_ssize_t __pyx_t_11;
   __Pyx_RefNannySetupContext("add_matches_cpp_arrow", 0);
 
-  /* "re2_arrow/lib.pyx":36
+  /* "re2_arrow/lib.pyx":37
  * cpdef add_matches_cpp_arrow(strings, list regexes):
  *     cdef int i
  *     cdef int num_regexes = len(regexes)             # <<<<<<<<<<<<<<
@@ -4300,12 +4308,12 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
  */
   if (unlikely(__pyx_v_regexes == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 36, __pyx_L1_error)
+    __PYX_ERR(0, 37, __pyx_L1_error)
   }
-  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_regexes); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_regexes); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 37, __pyx_L1_error)
   __pyx_v_num_regexes = __pyx_t_1;
 
-  /* "re2_arrow/lib.pyx":39
+  /* "re2_arrow/lib.pyx":40
  *     cdef vector[cpp_string] cpp_regexes
  * 
  *     for i in range(num_regexes):             # <<<<<<<<<<<<<<
@@ -4317,7 +4325,7 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "re2_arrow/lib.pyx":40
+    /* "re2_arrow/lib.pyx":41
  * 
  *     for i in range(num_regexes):
  *         cpp_regexes.push_back(regexes[i].encode('utf-8'))             # <<<<<<<<<<<<<<
@@ -4326,11 +4334,11 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
  */
     if (unlikely(__pyx_v_regexes == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 40, __pyx_L1_error)
+      __PYX_ERR(0, 41, __pyx_L1_error)
     }
-    __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_regexes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_regexes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 41, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 41, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_6 = NULL;
@@ -4345,45 +4353,45 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
     }
     __pyx_t_5 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_6, __pyx_kp_s_utf_8) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_kp_s_utf_8);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 40, __pyx_L1_error)
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 41, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_8 = __pyx_convert_string_from_py_std__in_string(__pyx_t_5); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_8 = __pyx_convert_string_from_py_std__in_string(__pyx_t_5); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 41, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     try {
       __pyx_v_cpp_regexes.push_back(__pyx_t_8);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 40, __pyx_L1_error)
+      __PYX_ERR(0, 41, __pyx_L1_error)
     }
   }
 
-  /* "re2_arrow/lib.pyx":43
+  /* "re2_arrow/lib.pyx":44
  * 
  *     # Use numpy array as container for match results
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))             # <<<<<<<<<<<<<<
  *     cdef uint32_t[:] matches_view = npmatches
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_regexes); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_regexes); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_9 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -4391,19 +4399,19 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
   __pyx_v_npmatches = __pyx_t_9;
   __pyx_t_9 = 0;
 
-  /* "re2_arrow/lib.pyx":44
+  /* "re2_arrow/lib.pyx":45
  *     # Use numpy array as container for match results
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))
  *     cdef uint32_t[:] matches_view = npmatches             # <<<<<<<<<<<<<<
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  * 
  */
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint32_t(__pyx_v_npmatches, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint32_t(__pyx_v_npmatches, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 45, __pyx_L1_error)
   __pyx_v_matches_view = __pyx_t_10;
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "re2_arrow/lib.pyx":45
+  /* "re2_arrow/lib.pyx":46
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))
  *     cdef uint32_t[:] matches_view = npmatches
  *     cdef uint32_t* matches_pointer = &matches_view[0]             # <<<<<<<<<<<<<<
@@ -4418,11 +4426,11 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
   } else if (unlikely(__pyx_t_11 >= __pyx_v_matches_view.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 45, __pyx_L1_error)
+    __PYX_ERR(0, 46, __pyx_L1_error)
   }
   __pyx_v_matches_pointer = (&(*((uint32_t *) ( /* dim=0 */ (__pyx_v_matches_view.data + __pyx_t_11 * __pyx_v_matches_view.strides[0]) ))));
 
-  /* "re2_arrow/lib.pyx":47
+  /* "re2_arrow/lib.pyx":48
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  * 
  *     add_matches_arrow(pyarrow_unwrap_array(strings), cpp_regexes, matches_pointer)             # <<<<<<<<<<<<<<
@@ -4431,15 +4439,15 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
  */
   add_matches_arrow(__pyx_f_7pyarrow_3lib_pyarrow_unwrap_array(__pyx_v_strings), __pyx_v_cpp_regexes, __pyx_v_matches_pointer);
 
-  /* "re2_arrow/lib.pyx":49
+  /* "re2_arrow/lib.pyx":50
  *     add_matches_arrow(pyarrow_unwrap_array(strings), cpp_regexes, matches_pointer)
  * 
  *     return npmatches.tolist()             # <<<<<<<<<<<<<<
  * 
- * 
+ * cpdef add_matches_cython_re2(list strings, list regexes):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_npmatches, __pyx_n_s_tolist); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_npmatches, __pyx_n_s_tolist); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -4453,14 +4461,14 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(PyObject *__pyx_v
   }
   __pyx_t_9 = (__pyx_t_6) ? __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6) : __Pyx_PyObject_CallNoArg(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 49, __pyx_L1_error)
+  if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_r = __pyx_t_9;
   __pyx_t_9 = 0;
   goto __pyx_L0;
 
-  /* "re2_arrow/lib.pyx":34
+  /* "re2_arrow/lib.pyx":35
  * 
  * # Single core efficient regex matching for Arrow
  * cpdef add_matches_cpp_arrow(strings, list regexes):             # <<<<<<<<<<<<<<
@@ -4516,11 +4524,11 @@ static PyObject *__pyx_pw_9re2_arrow_3lib_1add_matches_cpp_arrow(PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_regexes)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow", 1, 2, 2, 1); __PYX_ERR(0, 34, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow", 1, 2, 2, 1); __PYX_ERR(0, 35, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_matches_cpp_arrow") < 0)) __PYX_ERR(0, 34, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_matches_cpp_arrow") < 0)) __PYX_ERR(0, 35, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4533,13 +4541,13 @@ static PyObject *__pyx_pw_9re2_arrow_3lib_1add_matches_cpp_arrow(PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 34, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 35, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("re2_arrow.lib.add_matches_cpp_arrow", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_regexes), (&PyList_Type), 1, "regexes", 1))) __PYX_ERR(0, 34, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_regexes), (&PyList_Type), 1, "regexes", 1))) __PYX_ERR(0, 35, __pyx_L1_error)
   __pyx_r = __pyx_pf_9re2_arrow_3lib_add_matches_cpp_arrow(__pyx_self, __pyx_v_strings, __pyx_v_regexes);
 
   /* function exit code */
@@ -4557,7 +4565,7 @@ static PyObject *__pyx_pf_9re2_arrow_3lib_add_matches_cpp_arrow(CYTHON_UNUSED Py
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("add_matches_cpp_arrow", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(__pyx_v_strings, __pyx_v_regexes, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow(__pyx_v_strings, __pyx_v_regexes, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4574,7 +4582,372 @@ static PyObject *__pyx_pf_9re2_arrow_3lib_add_matches_cpp_arrow(CYTHON_UNUSED Py
   return __pyx_r;
 }
 
-/* "re2_arrow/lib.pyx":53
+/* "re2_arrow/lib.pyx":52
+ *     return npmatches.tolist()
+ * 
+ * cpdef add_matches_cython_re2(list strings, list regexes):             # <<<<<<<<<<<<<<
+ *     cdef int i, j, result
+ *     cdef int num_regexes = len(regexes)
+ */
+
+static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cython_re2(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cython_re2(PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_result;
+  int __pyx_v_num_regexes;
+  int __pyx_v_num_strings;
+  PyObject *__pyx_v_progs = 0;
+  PyObject *__pyx_v_matches = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  Py_ssize_t __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  int __pyx_t_9;
+  int __pyx_t_10;
+  int __pyx_t_11;
+  int __pyx_t_12;
+  int __pyx_t_13;
+  __Pyx_RefNannySetupContext("add_matches_cython_re2", 0);
+
+  /* "re2_arrow/lib.pyx":54
+ * cpdef add_matches_cython_re2(list strings, list regexes):
+ *     cdef int i, j, result
+ *     cdef int num_regexes = len(regexes)             # <<<<<<<<<<<<<<
+ *     cdef int num_strings = len(strings)
+ *     cdef list progs = []
+ */
+  if (unlikely(__pyx_v_regexes == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(0, 54, __pyx_L1_error)
+  }
+  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_regexes); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_v_num_regexes = __pyx_t_1;
+
+  /* "re2_arrow/lib.pyx":55
+ *     cdef int i, j, result
+ *     cdef int num_regexes = len(regexes)
+ *     cdef int num_strings = len(strings)             # <<<<<<<<<<<<<<
+ *     cdef list progs = []
+ *     cdef list matches = []
+ */
+  if (unlikely(__pyx_v_strings == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(0, 55, __pyx_L1_error)
+  }
+  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_strings); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_v_num_strings = __pyx_t_1;
+
+  /* "re2_arrow/lib.pyx":56
+ *     cdef int num_regexes = len(regexes)
+ *     cdef int num_strings = len(strings)
+ *     cdef list progs = []             # <<<<<<<<<<<<<<
+ *     cdef list matches = []
+ * 
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_v_progs = ((PyObject*)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "re2_arrow/lib.pyx":57
+ *     cdef int num_strings = len(strings)
+ *     cdef list progs = []
+ *     cdef list matches = []             # <<<<<<<<<<<<<<
+ * 
+ *     for i in range(num_regexes):
+ */
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_v_matches = ((PyObject*)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "re2_arrow/lib.pyx":59
+ *     cdef list matches = []
+ * 
+ *     for i in range(num_regexes):             # <<<<<<<<<<<<<<
+ *         progs.append(re2.compile(regexes[i]))
+ * 
+ */
+  __pyx_t_3 = __pyx_v_num_regexes;
+  __pyx_t_4 = __pyx_t_3;
+  for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+    __pyx_v_i = __pyx_t_5;
+
+    /* "re2_arrow/lib.pyx":60
+ * 
+ *     for i in range(num_regexes):
+ *         progs.append(re2.compile(regexes[i]))             # <<<<<<<<<<<<<<
+ * 
+ *     for i in range(num_regexes):
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_re2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_compile); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(__pyx_v_regexes == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(0, 60, __pyx_L1_error)
+    }
+    __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_regexes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_8 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
+      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_7);
+      if (likely(__pyx_t_8)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+        __Pyx_INCREF(__pyx_t_8);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_7, function);
+      }
+    }
+    __pyx_t_2 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_8, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_6);
+    __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_progs, __pyx_t_2); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 60, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  }
+
+  /* "re2_arrow/lib.pyx":62
+ *         progs.append(re2.compile(regexes[i]))
+ * 
+ *     for i in range(num_regexes):             # <<<<<<<<<<<<<<
+ *         result = 0
+ *         for j in range(num_strings):
+ */
+  __pyx_t_3 = __pyx_v_num_regexes;
+  __pyx_t_4 = __pyx_t_3;
+  for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+    __pyx_v_i = __pyx_t_5;
+
+    /* "re2_arrow/lib.pyx":63
+ * 
+ *     for i in range(num_regexes):
+ *         result = 0             # <<<<<<<<<<<<<<
+ *         for j in range(num_strings):
+ *             if progs[i].test_fullmatch(strings[j]):
+ */
+    __pyx_v_result = 0;
+
+    /* "re2_arrow/lib.pyx":64
+ *     for i in range(num_regexes):
+ *         result = 0
+ *         for j in range(num_strings):             # <<<<<<<<<<<<<<
+ *             if progs[i].test_fullmatch(strings[j]):
+ *                 result += 1
+ */
+    __pyx_t_10 = __pyx_v_num_strings;
+    __pyx_t_11 = __pyx_t_10;
+    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
+      __pyx_v_j = __pyx_t_12;
+
+      /* "re2_arrow/lib.pyx":65
+ *         result = 0
+ *         for j in range(num_strings):
+ *             if progs[i].test_fullmatch(strings[j]):             # <<<<<<<<<<<<<<
+ *                 result += 1
+ *         matches.append(result)
+ */
+      __pyx_t_7 = __Pyx_GetItemInt_List(__pyx_v_progs, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 65, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_test_fullmatch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      if (unlikely(__pyx_v_strings == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+        __PYX_ERR(0, 65, __pyx_L1_error)
+      }
+      __pyx_t_7 = __Pyx_GetItemInt_List(__pyx_v_strings, __pyx_v_j, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 65, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_8 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
+        __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_6);
+        if (likely(__pyx_t_8)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+          __Pyx_INCREF(__pyx_t_8);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_6, function);
+        }
+      }
+      __pyx_t_2 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_8, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_7);
+      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 65, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      if (__pyx_t_13) {
+
+        /* "re2_arrow/lib.pyx":66
+ *         for j in range(num_strings):
+ *             if progs[i].test_fullmatch(strings[j]):
+ *                 result += 1             # <<<<<<<<<<<<<<
+ *         matches.append(result)
+ * 
+ */
+        __pyx_v_result = (__pyx_v_result + 1);
+
+        /* "re2_arrow/lib.pyx":65
+ *         result = 0
+ *         for j in range(num_strings):
+ *             if progs[i].test_fullmatch(strings[j]):             # <<<<<<<<<<<<<<
+ *                 result += 1
+ *         matches.append(result)
+ */
+      }
+    }
+
+    /* "re2_arrow/lib.pyx":67
+ *             if progs[i].test_fullmatch(strings[j]):
+ *                 result += 1
+ *         matches.append(result)             # <<<<<<<<<<<<<<
+ * 
+ *     return matches
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_matches, __pyx_t_2); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  }
+
+  /* "re2_arrow/lib.pyx":69
+ *         matches.append(result)
+ * 
+ *     return matches             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_matches);
+  __pyx_r = __pyx_v_matches;
+  goto __pyx_L0;
+
+  /* "re2_arrow/lib.pyx":52
+ *     return npmatches.tolist()
+ * 
+ * cpdef add_matches_cython_re2(list strings, list regexes):             # <<<<<<<<<<<<<<
+ *     cdef int i, j, result
+ *     cdef int num_regexes = len(regexes)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("re2_arrow.lib.add_matches_cython_re2", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_progs);
+  __Pyx_XDECREF(__pyx_v_matches);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cython_re2(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cython_re2(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_strings = 0;
+  PyObject *__pyx_v_regexes = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("add_matches_cython_re2 (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_strings,&__pyx_n_s_regexes,0};
+    PyObject* values[2] = {0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_strings)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_regexes)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("add_matches_cython_re2", 1, 2, 2, 1); __PYX_ERR(0, 52, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_matches_cython_re2") < 0)) __PYX_ERR(0, 52, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+    }
+    __pyx_v_strings = ((PyObject*)values[0]);
+    __pyx_v_regexes = ((PyObject*)values[1]);
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("add_matches_cython_re2", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 52, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("re2_arrow.lib.add_matches_cython_re2", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_strings), (&PyList_Type), 1, "strings", 1))) __PYX_ERR(0, 52, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_regexes), (&PyList_Type), 1, "regexes", 1))) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_r = __pyx_pf_9re2_arrow_3lib_2add_matches_cython_re2(__pyx_self, __pyx_v_strings, __pyx_v_regexes);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_9re2_arrow_3lib_2add_matches_cython_re2(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("add_matches_cython_re2", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_9re2_arrow_3lib_add_matches_cython_re2(__pyx_v_strings, __pyx_v_regexes, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("re2_arrow.lib.add_matches_cython_re2", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "re2_arrow/lib.pyx":73
  * 
  * # Multi core efficient regex matching for Arrow
  * cpdef add_matches_cpp_arrow_omp(strings, list regexes):             # <<<<<<<<<<<<<<
@@ -4582,7 +4955,7 @@ static PyObject *__pyx_pf_9re2_arrow_3lib_add_matches_cpp_arrow(CYTHON_UNUSED Py
  *     cdef int num_regexes = len(regexes)
  */
 
-static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_9re2_arrow_3lib_5add_matches_cpp_arrow_omp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes, CYTHON_UNUSED int __pyx_skip_dispatch) {
   int __pyx_v_i;
   int __pyx_v_num_regexes;
@@ -4605,7 +4978,7 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
   Py_ssize_t __pyx_t_11;
   __Pyx_RefNannySetupContext("add_matches_cpp_arrow_omp", 0);
 
-  /* "re2_arrow/lib.pyx":55
+  /* "re2_arrow/lib.pyx":75
  * cpdef add_matches_cpp_arrow_omp(strings, list regexes):
  *     cdef int i
  *     cdef int num_regexes = len(regexes)             # <<<<<<<<<<<<<<
@@ -4614,12 +4987,12 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
  */
   if (unlikely(__pyx_v_regexes == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 55, __pyx_L1_error)
+    __PYX_ERR(0, 75, __pyx_L1_error)
   }
-  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_regexes); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_regexes); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 75, __pyx_L1_error)
   __pyx_v_num_regexes = __pyx_t_1;
 
-  /* "re2_arrow/lib.pyx":58
+  /* "re2_arrow/lib.pyx":78
  *     cdef vector[cpp_string] cpp_regexes
  * 
  *     for i in range(num_regexes):             # <<<<<<<<<<<<<<
@@ -4631,7 +5004,7 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "re2_arrow/lib.pyx":59
+    /* "re2_arrow/lib.pyx":79
  * 
  *     for i in range(num_regexes):
  *         cpp_regexes.push_back(regexes[i].encode('utf-8'))             # <<<<<<<<<<<<<<
@@ -4640,11 +5013,11 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
  */
     if (unlikely(__pyx_v_regexes == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 59, __pyx_L1_error)
+      __PYX_ERR(0, 79, __pyx_L1_error)
     }
-    __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_regexes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_regexes, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_6 = NULL;
@@ -4659,45 +5032,45 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
     }
     __pyx_t_5 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_6, __pyx_kp_s_utf_8) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_kp_s_utf_8);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 59, __pyx_L1_error)
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_8 = __pyx_convert_string_from_py_std__in_string(__pyx_t_5); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_t_8 = __pyx_convert_string_from_py_std__in_string(__pyx_t_5); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     try {
       __pyx_v_cpp_regexes.push_back(__pyx_t_8);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 59, __pyx_L1_error)
+      __PYX_ERR(0, 79, __pyx_L1_error)
     }
   }
 
-  /* "re2_arrow/lib.pyx":62
+  /* "re2_arrow/lib.pyx":82
  * 
  *     # Use numpy array as container for match results
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))             # <<<<<<<<<<<<<<
  *     cdef uint32_t[:] matches_view = npmatches
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_regexes); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_regexes); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_9 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 62, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -4705,19 +5078,19 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
   __pyx_v_npmatches = __pyx_t_9;
   __pyx_t_9 = 0;
 
-  /* "re2_arrow/lib.pyx":63
+  /* "re2_arrow/lib.pyx":83
  *     # Use numpy array as container for match results
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))
  *     cdef uint32_t[:] matches_view = npmatches             # <<<<<<<<<<<<<<
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  * 
  */
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint32_t(__pyx_v_npmatches, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint32_t(__pyx_v_npmatches, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 83, __pyx_L1_error)
   __pyx_v_matches_view = __pyx_t_10;
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "re2_arrow/lib.pyx":64
+  /* "re2_arrow/lib.pyx":84
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))
  *     cdef uint32_t[:] matches_view = npmatches
  *     cdef uint32_t* matches_pointer = &matches_view[0]             # <<<<<<<<<<<<<<
@@ -4732,11 +5105,11 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
   } else if (unlikely(__pyx_t_11 >= __pyx_v_matches_view.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 64, __pyx_L1_error)
+    __PYX_ERR(0, 84, __pyx_L1_error)
   }
   __pyx_v_matches_pointer = (&(*((uint32_t *) ( /* dim=0 */ (__pyx_v_matches_view.data + __pyx_t_11 * __pyx_v_matches_view.strides[0]) ))));
 
-  /* "re2_arrow/lib.pyx":66
+  /* "re2_arrow/lib.pyx":86
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  * 
  *     add_matches_arrow_omp(pyarrow_unwrap_array(strings), cpp_regexes, matches_pointer)             # <<<<<<<<<<<<<<
@@ -4745,13 +5118,13 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
  */
   add_matches_arrow_omp(__pyx_f_7pyarrow_3lib_pyarrow_unwrap_array(__pyx_v_strings), __pyx_v_cpp_regexes, __pyx_v_matches_pointer);
 
-  /* "re2_arrow/lib.pyx":68
+  /* "re2_arrow/lib.pyx":88
  *     add_matches_arrow_omp(pyarrow_unwrap_array(strings), cpp_regexes, matches_pointer)
  * 
  *     return npmatches.tolist()             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_npmatches, __pyx_n_s_tolist); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_npmatches, __pyx_n_s_tolist); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -4765,14 +5138,14 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
   }
   __pyx_t_9 = (__pyx_t_6) ? __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6) : __Pyx_PyObject_CallNoArg(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 68, __pyx_L1_error)
+  if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_r = __pyx_t_9;
   __pyx_t_9 = 0;
   goto __pyx_L0;
 
-  /* "re2_arrow/lib.pyx":53
+  /* "re2_arrow/lib.pyx":73
  * 
  * # Multi core efficient regex matching for Arrow
  * cpdef add_matches_cpp_arrow_omp(strings, list regexes):             # <<<<<<<<<<<<<<
@@ -4798,8 +5171,8 @@ static PyObject *__pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(PyObject *__p
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_9re2_arrow_3lib_5add_matches_cpp_arrow_omp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_9re2_arrow_3lib_5add_matches_cpp_arrow_omp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_strings = 0;
   PyObject *__pyx_v_regexes = 0;
   PyObject *__pyx_r = 0;
@@ -4828,11 +5201,11 @@ static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp(PyObject *_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_regexes)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow_omp", 1, 2, 2, 1); __PYX_ERR(0, 53, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow_omp", 1, 2, 2, 1); __PYX_ERR(0, 73, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_matches_cpp_arrow_omp") < 0)) __PYX_ERR(0, 53, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_matches_cpp_arrow_omp") < 0)) __PYX_ERR(0, 73, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4845,14 +5218,14 @@ static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp(PyObject *_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow_omp", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 53, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_matches_cpp_arrow_omp", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 73, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("re2_arrow.lib.add_matches_cpp_arrow_omp", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_regexes), (&PyList_Type), 1, "regexes", 1))) __PYX_ERR(0, 53, __pyx_L1_error)
-  __pyx_r = __pyx_pf_9re2_arrow_3lib_2add_matches_cpp_arrow_omp(__pyx_self, __pyx_v_strings, __pyx_v_regexes);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_regexes), (&PyList_Type), 1, "regexes", 1))) __PYX_ERR(0, 73, __pyx_L1_error)
+  __pyx_r = __pyx_pf_9re2_arrow_3lib_4add_matches_cpp_arrow_omp(__pyx_self, __pyx_v_strings, __pyx_v_regexes);
 
   /* function exit code */
   goto __pyx_L0;
@@ -4863,13 +5236,13 @@ static PyObject *__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp(PyObject *_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9re2_arrow_3lib_2add_matches_cpp_arrow_omp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes) {
+static PyObject *__pyx_pf_9re2_arrow_3lib_4add_matches_cpp_arrow_omp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_strings, PyObject *__pyx_v_regexes) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("add_matches_cpp_arrow_omp", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(__pyx_v_strings, __pyx_v_regexes, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_9re2_arrow_3lib_add_matches_cpp_arrow_omp(__pyx_v_strings, __pyx_v_regexes, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -20863,7 +21236,8 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
 
 static PyMethodDef __pyx_methods[] = {
   {"add_matches_cpp_arrow", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9re2_arrow_3lib_1add_matches_cpp_arrow, METH_VARARGS|METH_KEYWORDS, 0},
-  {"add_matches_cpp_arrow_omp", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9re2_arrow_3lib_3add_matches_cpp_arrow_omp, METH_VARARGS|METH_KEYWORDS, 0},
+  {"add_matches_cython_re2", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9re2_arrow_3lib_3add_matches_cython_re2, METH_VARARGS|METH_KEYWORDS, 0},
+  {"add_matches_cpp_arrow_omp", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9re2_arrow_3lib_5add_matches_cpp_arrow_omp, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -20943,6 +21317,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
+  {&__pyx_n_s_compile, __pyx_k_compile, sizeof(__pyx_k_compile), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
@@ -20987,6 +21362,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pyx_unpickle_Enum, __pyx_k_pyx_unpickle_Enum, sizeof(__pyx_k_pyx_unpickle_Enum), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
+  {&__pyx_n_s_re2, __pyx_k_re2, sizeof(__pyx_k_re2), 0, 0, 1, 1},
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
@@ -21005,6 +21381,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_stringsource, __pyx_k_stringsource, sizeof(__pyx_k_stringsource), 0, 0, 1, 0},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_test_fullmatch, __pyx_k_test_fullmatch, sizeof(__pyx_k_test_fullmatch), 0, 0, 1, 1},
   {&__pyx_n_s_tolist, __pyx_k_tolist, sizeof(__pyx_k_tolist), 0, 0, 1, 1},
   {&__pyx_n_s_u4, __pyx_k_u4, sizeof(__pyx_k_u4), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
@@ -21017,7 +21394,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 40, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 272, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 856, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 1038, __pyx_L1_error)
@@ -21036,25 +21413,25 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "re2_arrow/lib.pyx":43
+  /* "re2_arrow/lib.pyx":44
  * 
  *     # Use numpy array as container for match results
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))             # <<<<<<<<<<<<<<
  *     cdef uint32_t[:] matches_view = npmatches
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_u4); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_u4); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "re2_arrow/lib.pyx":62
+  /* "re2_arrow/lib.pyx":82
  * 
  *     # Use numpy array as container for match results
  *     npmatches = np.zeros(num_regexes, dtype=np.dtype('u4'))             # <<<<<<<<<<<<<<
  *     cdef uint32_t[:] matches_view = npmatches
  *     cdef uint32_t* matches_pointer = &matches_view[0]
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_u4); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_u4); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
@@ -21978,13 +22355,25 @@ if (!__Pyx_RefNanny) {
   /* "re2_arrow/lib.pyx":22
  * from libcpp cimport bool as cpp_bool
  * 
+ * import re2             # <<<<<<<<<<<<<<
+ * import numpy as np
+ * cimport numpy as np
+ */
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_re2, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_re2, __pyx_t_1) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "re2_arrow/lib.pyx":23
+ * 
+ * import re2
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
  * from pyarrow.lib cimport *
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "re2_arrow/lib.pyx":1

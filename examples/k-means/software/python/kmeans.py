@@ -294,17 +294,18 @@ if __name__ == "__main__":
         t_naser.append(t.seconds())
 
         t.start()
-        batch_points = kmeans.create_record_batch_from_numpy(numpy_points)
+        numpy_copy = np.copy(numpy_points)
+        batch_points = kmeans.create_record_batch_from_numpy(numpy_copy)
         t.stop()
         t_npser.append(t.seconds())
 
     print("Total serialization time for {ne} runs".format(ne=ne))
     print("Native to arrow serialization time: " + str(sum(t_naser)))
-    print("Numpy to arrow serialization time: " + str(sum(t_npser)))
+    print("Numpy to arrow serialization time (including one copy): " + str(sum(t_npser)))
     print()
     print("Average serialization times:")
     print("Native to arrow serialization time: " + str(sum(t_naser)/ne))
-    print("Numpy to arrow serialization time: " + str(sum(t_npser)/ne))
+    print("Numpy to arrow serialization time (including one copy): " + str(sum(t_npser)/ne))
 
     # Determine starting centroids
     list_centroids = []

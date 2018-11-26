@@ -19,6 +19,7 @@ from libcpp.string cimport string as cpp_string
 from libcpp.vector cimport vector
 from libcpp cimport bool as cpp_bool
 
+import re2
 import numpy as np
 cimport numpy as np
 from pyarrow.lib cimport *
@@ -47,6 +48,25 @@ cpdef add_matches_cpp_arrow(strings, list regexes):
     add_matches_arrow(pyarrow_unwrap_array(strings), cpp_regexes, matches_pointer)
 
     return npmatches.tolist()
+
+cpdef add_matches_cython_re2(list strings, list regexes):
+    cdef int i, j, result
+    cdef int num_regexes = len(regexes)
+    cdef int num_strings = len(strings)
+    cdef list progs = []
+    cdef list matches = []
+
+    for i in range(num_regexes):
+        progs.append(re2.compile(regexes[i]))
+
+    for i in range(num_regexes):
+        result = 0
+        for j in range(num_strings):
+            if progs[i].test_fullmatch(strings[j]):
+                result += 1
+        matches.append(result)
+
+    return matches
 
 
 # Multi core efficient regex matching for Arrow

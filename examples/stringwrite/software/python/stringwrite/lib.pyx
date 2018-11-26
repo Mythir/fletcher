@@ -25,6 +25,27 @@ cimport numpy as np
 import pandas as pd
 from pyarrow.lib cimport *
 
+
+import timeit
+import gc
+class Timer:
+    def __init__(self, gc_disable=True):
+        self.starttime = 0
+        self.stoptime = 0
+        self.gc_disable = gc_disable
+
+    def start(self):
+        if self.gc_disable:
+            gc.disable()
+        self.starttime = timeit.default_timer()
+
+    def stop(self):
+        self.stoptime = timeit.default_timer()
+        gc.enable()
+
+    def seconds(self):
+        return self.stoptime - self.starttime
+
 cdef extern from "cpp/stringwrite.h" nogil:
     shared_ptr[vector[int32_t]] genRandomLengths(int32_t amount, uint32_t min, uint32_t mask, int32_t *total)
     shared_ptr[vector[char]] genRandomValues(const shared_ptr[vector[int32_t]] &lengths, int32_t amount)
@@ -63,12 +84,15 @@ cpdef deserialize_to_arrow(np_lengths, np_values):
 
 
 cpdef deserialize_to_list(np_lengths, np_values):
+    t = Timer(gc_disable=False)
     cdef const int32_t[:] lengths_view = np_lengths
     cdef const unsigned char[:] values_view = np_values
     cdef const int32_t* lengths = &lengths_view[0]
     cdef const unsigned char* values = &values_view[0]
-
+    t.start()
     cdef list result = [None]*np_lengths.size
+    t.stop()
+    print(t.seconds())
 
     cdef int i
     cdef int end
@@ -82,12 +106,15 @@ cpdef deserialize_to_list(np_lengths, np_values):
     return result
 
 cpdef deserialize_to_pandas(np_lengths, np_values):
+    t = Timer(gc_disable=False)
     cdef const int32_t[:] lengths_view = np_lengths
     cdef const unsigned char[:] values_view = np_values
     cdef const int32_t* lengths = &lengths_view[0]
     cdef const unsigned char* values = &values_view[0]
-
-    result = pd.Series([None] * np_lengths.size, dtype=str)
+    t.start()
+    cdef list result = [None]*np_lengths.size
+    t.stop()
+    print(t.seconds())
 
     cdef int i
     cdef int end
@@ -98,4 +125,4 @@ cpdef deserialize_to_pandas(np_lengths, np_values):
         result[i] = values[begin:end]
         begin = end
 
-    return result
+    return pd.Series(result)

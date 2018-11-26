@@ -174,7 +174,7 @@ def filter_record_batch_fpga(batch_in, zip_code, platform_type, offsets_buffer_o
 
     t.start()
     platform.copy_device_to_host(context.get_buffer_device_address(3, 0), offsets_buffer_out_size,
-                           batch_out.column(0).buffers()[1])
+                                 batch_out.column(0).buffers()[1])
     platform.copy_device_to_host(context.get_buffer_device_address(3, 1), values_buffer_out_size,
                                  batch_out.column(0).buffers()[2])
     t.stop()
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     t = Timer(gc_disable=False)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_exp", dest="ne", default=1,
+    parser.add_argument("--num_exp", dest="ne", default=3,
                         help="Number of experiments to perform")
     parser.add_argument("--input_strings", dest="input_file", default="../cmake-build-debug/rows1024.dat",
                         help="Path to file with strings to search through")
@@ -253,6 +253,7 @@ if __name__ == "__main__":
     print("Pandas to Arrow using from_pandas(): " + str(sum(t_ser_fast)))
 
     for i in range(ne):
+        print("Starting experiment " + str(i))
         # Normal Pandas filtering. Creates copy.
         t.start()
         r_pd_py.append(filter_dataframe_python(frame, special_zip_code))
@@ -277,36 +278,45 @@ if __name__ == "__main__":
         t.stop()
         t_pa_cpp.append(t.seconds())
 
-        # Filter an Arrow record batch using the FPGA. Creates copy.
-        # Currently requires prior knowledge on the size of the output batch.
-        t.start()
-        r_fpga.append(filter_record_batch_fpga(batch_basic, special_zip_code, platform_type,
-                                               r_pa_cpp[0].column(0).buffers()[1].size,
-                                               r_pa_cpp[0].column(0).buffers()[2].size,
-                                               t_copy,
-                                               t_fpga, t_d2h))
-        t.stop()
-        t_ftot.append(t.seconds())
+    # Filter an Arrow record batch using the FPGA. Creates copy.
+    # Currently requires prior knowledge on the size of the output batch.
+    # This is only done once because of a bug that causes the hw to only function properly once
+    t.start()
+    r_fpga.append(filter_record_batch_fpga(batch_basic, special_zip_code, platform_type,
+                                           r_pa_cpp[0].column(0).buffers()[1].size,
+                                           r_pa_cpp[0].column(0).buffers()[2].size,
+                                           t_copy,
+                                           t_fpga, t_d2h))
+    t.stop()
+    t_ftot.append(t.seconds())
 
-        print("Total execution times for " + str(i+1) + " runs:")
-        print("Pandas pure Python filtering: " + str(sum(t_pd_py)))
-        print("Pandas Cython (?) filtering: " + str(sum(t_pd_cy)))
-        print("Arrow pure Python filtering: " + str(sum(t_pa_py)))
-        print("Arrow CPP filtering: " + str(sum(t_pa_cpp)))
-        print("Filter Arrow FPGA copy time: " + str(sum(t_copy)))
-        print("Filter Arrow FPGA algorithm time: " + str(sum(t_fpga)))
-        print("Filter Arrow FPGA total time: " + str(sum(t_ftot)))
-        print("Filter Arrow FPGA d2h time: " + str(sum(t_d2h)))
-        print()
-        print("Average execution times:")
-        print("Pandas pure Python filtering: " + str(sum(t_pd_py) / (i + 1)))
-        print("Pandas Cython (?) filtering: " + str(sum(t_pd_cy) / (i + 1)))
-        print("Arrow pure Python filtering: " + str(sum(t_pa_py) / (i + 1)))
-        print("Arrow CPP filtering: " + str(sum(t_pa_cpp) / (i + 1)))
-        print("Filter Arrow FPGA copy time: " + str(sum(t_copy)/(i+1)))
-        print("Filter Arrow FPGA algorithm time: " + str(sum(t_fpga)/(i+1)))
-        print("Filter Arrow FPGA total time: " + str(sum(t_ftot)/(i+1)))
-        print("Filter Arrow FPGA d2h time: " + str(sum(t_d2h)/(i+1)))
+    # Fill up results and timer lists to ensure the result printing and checking still works.
+    # Only necessary because of the hw only being able to run once.
+    for i in range(ne-1):
+        r_fpga.append(r_fpga[0])
+        t_fpga.append(t_fpga[0])
+        t_copy.append(t_copy[0])
+        t_ftot.append(t_ftot[0])
+
+    print("Total execution times for " + str(i+1) + " runs:")
+    print("Pandas pure Python filtering: " + str(sum(t_pd_py)))
+    print("Pandas Cython (?) filtering: " + str(sum(t_pd_cy)))
+    print("Arrow pure Python filtering: " + str(sum(t_pa_py)))
+    print("Arrow CPP filtering: " + str(sum(t_pa_cpp)))
+    print("Filter Arrow FPGA copy time: " + str(sum(t_copy)))
+    print("Filter Arrow FPGA algorithm time: " + str(sum(t_fpga)))
+    print("Filter Arrow FPGA total time: " + str(sum(t_ftot)))
+    print("Filter Arrow FPGA d2h time: " + str(sum(t_d2h)))
+    print()
+    print("Average execution times:")
+    print("Pandas pure Python filtering: " + str(sum(t_pd_py) / (i + 1)))
+    print("Pandas Cython (?) filtering: " + str(sum(t_pd_cy) / (i + 1)))
+    print("Arrow pure Python filtering: " + str(sum(t_pa_py) / (i + 1)))
+    print("Arrow CPP filtering: " + str(sum(t_pa_cpp) / (i + 1)))
+    print("Filter Arrow FPGA copy time: " + str(sum(t_copy)/(i+1)))
+    print("Filter Arrow FPGA algorithm time: " + str(sum(t_fpga)/(i+1)))
+    print("Filter Arrow FPGA total time: " + str(sum(t_ftot)/(i+1)))
+    print("Filter Arrow FPGA d2h time: " + str(sum(t_d2h)/(i+1)))
 
     with open("Output.txt", "w") as textfile:
         textfile.write("\nTotal execution times for " + str(ne) + " runs:")

@@ -24,7 +24,7 @@ ext_modules = cythonize(Extension(
     language="c++",
     extra_compile_args=["-std=c++11", "-Ofast", "-fopenmp", "-march=native"],
     extra_link_args=["-std=c++11", "-fopenmp"]
-))
+), language_level=3)
 
 for ext in ext_modules:
     ext.include_dirs.append(np.get_include())
