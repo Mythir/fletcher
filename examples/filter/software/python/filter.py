@@ -339,6 +339,15 @@ if __name__ == "__main__":
         textfile.write("\nFilter Arrow FPGA total time: " + str(sum(t_ftot)/ne))
         textfile.write("\nFilter Arrow FPGA d2h time: " + str(sum(t_d2h)/ne))
 
+    if not r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_py[i], get_filter_write_schema(), preserve_index=False)):
+        print("pa_py and pd_py unequal")
+    if not r_pa_py[i].equals(r_pa_cpp[i]):
+        print("pa_py and pa_cp unequal")
+    if not r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_cy[i], get_filter_write_schema(), preserve_index=False)):
+        print("pa_py and pd_cy unequal")
+    if not r_pa_py[i].equals(r_fpga[i]):
+        print("pa_py and fpga unequal")
+
     # Check if results are equal.
     pass_counter = 0
     cross_exp_pass_counter = 0
