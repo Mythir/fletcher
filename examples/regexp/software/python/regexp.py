@@ -320,7 +320,7 @@ if __name__ == "__main__":
 
         # Match Arrow array on CPU (with Cython wrapped CPP functions)
         t.start()
-        #m_ar_cppre.append(re2_arrow.add_matches_cpp_arrow(rb.column(0), regexes))
+        m_ar_cppre.append(re2_arrow.add_matches_cpp_arrow(rb.column(0), regexes))
         t.stop()
         t_ar_cppre.append(t.seconds())
 
@@ -408,7 +408,6 @@ if __name__ == "__main__":
     m_py_pyre = m_ar_cppre_omp
     m_pa_pyre = m_ar_cppre_omp
     m_ar_pyre2 = m_ar_cppre_omp
-    m_ar_cppre = m_ar_cppre_omp
     m_pa_pyre2 = m_ar_cppre_omp
 
     for p in range(np):
