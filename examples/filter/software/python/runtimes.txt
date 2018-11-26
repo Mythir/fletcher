@@ -1,0 +1,33 @@
+Total execution times for 16 runs:
+Pandas pure Python filtering: 10.634872549000647
+Pandas Cython (?) filtering: 10.610418734999257
+Arrow pure Python filtering: 211.58345097899473
+Arrow CPP filtering: 1.0389110440009972
+Average execution times:
+Pandas pure Python filtering: 0.6646795343125405
+Pandas Cython (?) filtering: 0.6631511709374536
+Arrow pure Python filtering: 13.22396568618717
+Arrow CPP filtering: 0.06493194025006233
+Batch out size: 2128624
+PASS
+
+(voor 1028*1028*8 gegenereert met Johan's generator)
+Total size of Arrow RecordBatch: 459154769 bytes.
+Total Pandas to Arrow serialization times for 16 runs: 
+Pandas to Arrow using from_arrays(): 19.094116301999748
+Pandas to Arrow using from_pandas(): 19.971233226997356
+
+Total execution times for 16 runs:
+Pandas pure Python filtering: 10.903022468000927
+Pandas Cython (?) filtering: 10.902200536002056
+Arrow pure Python filtering: 198.98818127100094
+Arrow CPP filtering: 0.7994973879976897
+
+Average execution times:
+Pandas pure Python filtering: 0.6814389042500579
+Pandas Cython (?) filtering: 0.6813875335001285
+Arrow pure Python filtering: 12.436761329437559
+Arrow CPP filtering: 0.049968586749855604
+Batch out size: 212447
+PASS
+

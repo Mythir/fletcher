@@ -1,0 +1,39 @@
+Average runtimes:
+Python list on CPU (re): 322.8003972634998
+Pandas series on CPU (re): 327.78336105543787
+Python list on CPU (Pyre2): 81.87756695993747
+Pandas series on CPU (Pyre2): 86.84985082262521
+Arrow array on CPU (Pyre2): 153.56366698856257
+Arrow array on CPU (CPP Re2): 58.09807618287485
+Arrow array on CPU (CPP Re2 OMP): 13.095607325999893
+Arrow array to FPGA copy: 0.14203264706270602
+Arrow array on FPGA algorithm time: 0.07189421500011406
+Arrow array on FPGA total: 0.2163673090624343
+
+(Voor 1024*1024*8)
+Total runtimes for 16 runs:
+Python list on CPU (re): 1.71400001818256e-05
+Pandas series on CPU (re): 6.44200190436095e-06
+Python list on CPU (Pyre2): 1435.85223989
+Python list on CPU (Cython Pyre2): 1368.6661626309992
+Pandas series on CPU (Pyre2): 1.2980999144929228e-05
+Arrow array on CPU (Pyre2): 6.49900039206841e-06
+Arrow array on CPU (CPP Re2): 1023.0348313589998
+Arrow array on CPU (CPP Re2 OMP): 229.03457694699864
+Arrow array to FPGA copy: 2.509816361000958
+Arrow array on FPGA algorithm time: 1.2595580130009694
+Arrow array on FPGA total: 3.8091032690026623
+
+Average runtimes:
+Python list on CPU (re): 1.0712500113641e-06
+Pandas series on CPU (re): 4.026251190225594e-07
+Python list on CPU (Pyre2): 89.740764993125
+Python list on CPU (Cython Pyre2): 85.54163516443745
+Pandas series on CPU (Pyre2): 8.113124465580768e-07
+Arrow array on CPU (Pyre2): 4.0618752450427564e-07
+Arrow array on CPU (CPP Re2): 63.939676959937486
+Arrow array on CPU (CPP Re2 OMP): 14.314661059187415
+Arrow array to FPGA copy: 0.15686352256255987
+Arrow array on FPGA algorithm time: 0.07872237581256059
+Arrow array on FPGA total: 0.2380689543126664
+

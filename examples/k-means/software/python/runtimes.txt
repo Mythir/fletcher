@@ -1,0 +1,13 @@
+Average runtimes:
+Kmeans native list pure Python execution time: 1.101625073829382e-06
+Kmeans NumPy pure Python execution time: 5.374375433575551e-07
+Kmeans Arrow pure Python execution time: 5.361876418419342e-07
+Kmeans NumPy Cython execution time: 181.56788445993755
+Kmeans Arrow Cython/CPP execution time: 84.62016585399999
+Kmeans Numpy Cython/CPP execution time: 83.66760300737496
+Kmeans Arrow Cython/CPP OMP execution time: 20.847125192874955
+Kmeans Numpy Cython/CPP OMP execution time: 20.832759252499883
+Kmeans Arrow FPGA copy time: 0.6232328551251385
+Kmeans Arrow FPGA algorithm time: 2.4068531552500474
+Kmeans Arrow FPGA total time: 3.033158326312474
+

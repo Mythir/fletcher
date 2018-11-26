@@ -277,7 +277,7 @@ if __name__ == "__main__":
         r_pa_cpp.append(filter_custom.filter_record_batch_cpp(batch_basic, special_zip_code))
         t.stop()
         t_pa_cpp.append(t.seconds())
-
+    """
     # Filter an Arrow record batch using the FPGA. Creates copy.
     # Currently requires prior knowledge on the size of the output batch.
     # This is only done once because of a bug that causes the hw to only function properly once
@@ -297,6 +297,7 @@ if __name__ == "__main__":
         t_fpga.append(t_fpga[0])
         t_copy.append(t_copy[0])
         t_ftot.append(t_ftot[0])
+    """
 
     print("Total execution times for " + str(i+1) + " runs:")
     print("Pandas pure Python filtering: " + str(sum(t_pd_py)))
@@ -339,23 +340,14 @@ if __name__ == "__main__":
         textfile.write("\nFilter Arrow FPGA total time: " + str(sum(t_ftot)/ne))
         textfile.write("\nFilter Arrow FPGA d2h time: " + str(sum(t_d2h)/ne))
 
-    if not r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_py[i], get_filter_write_schema(), preserve_index=False)):
-        print("pa_py and pd_py unequal")
-    if not r_pa_py[i].equals(r_pa_cpp[i]):
-        print("pa_py and pa_cp unequal")
-    if not r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_cy[i], get_filter_write_schema(), preserve_index=False)):
-        print("pa_py and pd_cy unequal")
-    if not r_pa_py[i].equals(r_fpga[i]):
-        print("pa_py and fpga unequal")
-
     # Check if results are equal.
     pass_counter = 0
     cross_exp_pass_counter = 0
     for i in range(ne):
         if r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_py[i], get_filter_write_schema(), preserve_index=False)) \
                 and r_pa_py[i].equals(r_pa_cpp[i]) \
-                and r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_cy[i], get_filter_write_schema(), preserve_index=False)) \
-                and r_pa_py[i].equals(r_fpga[i]):
+                and r_pa_py[i].equals(pa.RecordBatch.from_pandas(r_pd_cy[i], get_filter_write_schema(), preserve_index=False)):# \
+                #and r_pa_py[i].equals(r_fpga[i]):
             pass_counter += 1
 
         if r_pa_py[0].equals(r_pa_py[i]):
