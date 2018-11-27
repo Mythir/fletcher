@@ -17,14 +17,11 @@ import argparse
 import gc
 import re
 import pandas as pd
-import pyarrow as pa
 import multiprocessing as mp
 
 # Add pyre2 to the Python 3 compatibility wall of shame
 __builtins__.basestring = str
 import re2
-
-import re2_arrow
 
 
 class Timer:
@@ -44,23 +41,6 @@ class Timer:
 
     def seconds(self):
         return self.stoptime - self.starttime
-
-
-def create_record_batch(strings):
-    """
-    Creates an Arrow record batch containing one column of strings.
-
-    Args:
-        strings(sequence, iterable, ndarray or Series): Strings for in the record batch
-
-    Returns:
-        record_batch
-
-    """
-    array = pa.array(strings)
-    column_field = pa.field("tweets", pa.string(), False)
-    schema = pa.schema([column_field])
-    return pa.RecordBatch.from_arrays([array], schema)
 
 
 def add_matches_cpu_re2(strings, regexes):
@@ -112,23 +92,6 @@ def add_matches_cpu_re(strings, regexes):
         result = 0
         for string in strings:
             if prog.fullmatch(string) is not None:
-                result += 1
-        matches.append(result)
-
-    return matches
-
-
-def add_matches_cpu_arrow(strings, regexes):
-    progs = []
-    matches = []
-
-    for regex in regexes:
-        progs.append(re2.compile(regex))
-
-    for prog in progs:
-        result = 0
-        for string in strings:
-            if prog.test_fullmatch(string.as_py()):
                 result += 1
         matches.append(result)
 
@@ -198,25 +161,6 @@ if __name__ == "__main__":
     strings_native = filedata.splitlines()
     strings_pandas = pd.Series(strings_native)
 
-    for i in range(ne):
-        t.start()
-        rb_n = create_record_batch(strings_native)
-        t.stop()
-        t_nser.append(t.seconds())
-
-        t.start()
-        rb = create_record_batch(strings_pandas)
-        t.stop()
-        t_pser.append(t.seconds())
-
-    print("Total serialization time for {ne} runs:".format(ne=ne))
-    print("Native to Arrow serialization time: " + str(sum(t_nser)))
-    print("Pandas to Arrow serialization time: " + str(sum(t_pser)))
-    print()
-    print("Average serialization time:".format(ne=ne))
-    print("Native to Arrow serialization time: " + str(sum(t_nser)/ne))
-    print("Pandas to Arrow serialization time: " + str(sum(t_pser)/ne))
-
     num_rows = len(strings_native)
 
     for e in range(ne):
@@ -274,7 +218,7 @@ if __name__ == "__main__":
 
         # Match Arrow array on CPU (with Cython wrapped CPP OMP functions)
         t.start()
-        m_ar_cppre_omp.append(re2_arrow.add_matches_cpp_arrow_omp(rb.column(0), regexes))
+        #m_ar_cppre_omp.append(re2_arrow.add_matches_cpp_arrow_omp(rb.column(0), regexes))
         t.stop()
         t_ar_cppre_omp.append(t.seconds())
 
@@ -354,14 +298,15 @@ if __name__ == "__main__":
     a_fpga = [0] * np
 
     # Todo: Temporary shortcut
-    m_py_pyre = m_ar_cppre_omp
-    m_pa_pyre = m_ar_cppre_omp
-    m_py_pyre2 = m_ar_cppre_omp
-    m_py_cy_pyre2 = m_ar_cppre_omp
-    m_pa_pyre2 = m_ar_cppre_omp
-    m_ar_pyre2 = m_ar_cppre_omp
-    m_ar_cppre = m_ar_cppre_omp
-    m_fpga = m_ar_cppre_omp
+    m_py_pyre = m_py_pyre2_mp
+    m_pa_pyre = m_py_pyre2_mp
+    m_py_pyre2 = m_py_pyre2_mp
+    m_py_cy_pyre2 = m_py_pyre2_mp
+    m_pa_pyre2 = m_py_pyre2_mp
+    m_ar_pyre2 = m_py_pyre2_mp
+    m_ar_cppre = m_py_pyre2_mp
+    m_fpga = m_py_pyre2_mp
+    m_ar_cppre_omp = m_py_pyre2_mp
 
     for p in range(np):
         for e in range(ne):

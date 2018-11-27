@@ -41,57 +41,6 @@ class Timer:
         return self.stoptime - self.starttime
 
 
-def get_filter_read_schema():
-    fields = [pa.field("First", pa.string(), False),
-              pa.field("Last", pa.string(), False),
-              pa.field("Zip", pa.uint32(), False)]
-
-    return pa.schema(fields)
-
-
-def get_filter_write_schema():
-    field = pa.field("First", pa.string(), False)
-    return pa.schema([field], metadata={"fletcher_mode": "write"})
-
-
-def create_batch_from_frame_basic(frame):
-    """Converts Pandas dataframe to Arrow batch using the basic from_arrays() function
-    Args:
-        frame: dataframe to convert
-
-    Returns:
-        Arrow RecordBatch
-
-    """
-    schema = get_filter_read_schema()
-
-    first_names = pa.array(frame["First"])
-    last_names = pa.array(frame["Last"])
-    zip_codes = pa.array(frame["Zip"])
-
-    return pa.RecordBatch.from_arrays([first_names, last_names, zip_codes], schema)
-
-
-def create_batch_from_frame_fast(frame, nthreads=None):
-    """Converts Pandas dataframe to Arrow batch in parallel.
-
-    Args:
-        frame: dataframe to convert
-        nthreads: Number of CPU threads to use
-
-    Returns:
-        Arrow RecordBatch
-
-    """
-    fields = [pa.field("First", pa.string(), False),
-              pa.field("Last", pa.string(), False),
-              pa.field("Zip", pa.uint32(), False)]
-
-    schema = pa.schema(fields)
-
-    return pa.RecordBatch.from_pandas(df=frame, schema=schema, preserve_index=False, nthreads=nthreads)
-
-
 def filter_dataframe_python(frame, zip_code):
     """Filter a dataframe using standard Pandas syntax.
 
@@ -190,30 +139,6 @@ if __name__ == "__main__":
     r_fpga = []
 
     for i in range(ne):
-        t.start()
-        batch_basic = create_batch_from_frame_basic(frame)
-        t.stop()
-        t_ser_basic.append(t.seconds())
-
-        t.start()
-        batch_fast = create_batch_from_frame_fast(frame, ser_threads)
-        t.stop()
-        t_ser_fast.append(t.seconds())
-
-    batch_size = 0
-    for i in range(len(frame.columns)):
-        column = batch_basic.column(i)
-        for buffer in column.buffers():
-            if buffer is not None:
-                batch_size += buffer.size
-
-    print("Total size of Arrow RecordBatch: {bytes} bytes.".format(bytes=batch_size))
-
-    print("Total Pandas to Arrow serialization times for " + str(ne) + " runs: ")
-    print("Pandas to Arrow using from_arrays(): " + str(sum(t_ser_basic)))
-    print("Pandas to Arrow using from_pandas(): " + str(sum(t_ser_fast)))
-
-    for i in range(ne):
         print("Starting experiment " + str(i))
         # Normal Pandas filtering. Creates copy.
         t.start()
@@ -229,13 +154,13 @@ if __name__ == "__main__":
 
         # Filter an Arrow record batch using only pure Python. Creates copy.
         t.start()
-        r_pa_py.append(filter_record_batch_python(batch_basic, special_zip_code))
+        #r_pa_py.append(filter_record_batch_python(batch_basic, special_zip_code))
         t.stop()
         t_pa_py.append(t.seconds())
 
         # Filter an Arrow record batch using Cython wrapped CPP. Creates copy.
         t.start()
-        r_pa_cpp.append(filter_custom.filter_record_batch_cpp(batch_basic, special_zip_code))
+        #r_pa_cpp.append(filter_custom.filter_record_batch_cpp(batch_basic, special_zip_code))
         t.stop()
         t_pa_cpp.append(t.seconds())
     """
@@ -300,6 +225,10 @@ if __name__ == "__main__":
         textfile.write("\nFilter Arrow FPGA algorithm time: " + str(sum(t_fpga)/ne))
         textfile.write("\nFilter Arrow FPGA total time: " + str(sum(t_ftot)/ne))
         textfile.write("\nFilter Arrow FPGA d2h time: " + str(sum(t_d2h)/ne))
+
+    # Todo: Temporary shortcut
+    r_pa_py = r_pd_py
+    r_pa_cpp = r_pd_py
 
     # Check if results are equal.
     pass_counter = 0

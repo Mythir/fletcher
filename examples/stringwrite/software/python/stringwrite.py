@@ -14,7 +14,6 @@
 
 import gc
 import timeit
-import pyarrow as pa
 import numpy as np
 import copy
 import sys
@@ -86,7 +85,7 @@ if __name__ == "__main__":
     for i in range(ne):
         print("Starting experiment " + str(i))
         t.start()
-        r_pa.append(stringwrite.deserialize_to_arrow(lengths, values))
+        #r_pa.append(stringwrite.deserialize_to_arrow(lengths, values))
         t.stop()
         t_pa.append(t.seconds())
 
@@ -122,23 +121,14 @@ if __name__ == "__main__":
         textfile.write("\nNative: " + str(sum(t_py) / (i + 1)))
         textfile.write("\nArrow: " + str(sum(t_pa) / (i + 1)))
 
-    # Find total size in bytes of Arrow array
-    batch_size = 0
-    for buffer in r_pa[0].buffers():
-        if buffer is not None:
-            batch_size += buffer.size
-
-    print("Total size of Arrow Array: {bytes} bytes.".format(bytes=batch_size))
-
     pass_counter = 0
     cross_exp_pass_counter = 0
 
     for i in range(ne):
-        if r_pa[i].equals(pa.array([x.decode("utf-8") for x in r_pd[i]])) \
-                and r_pa[i].equals(pa.array([x.decode("utf-8") for x in r_py[i]])):
+        if r_py[i] == r_pd[i].tolist():
             pass_counter += 1
 
-        if r_pa[0].equals(r_pa[i]):
+        if r_py[0] == r_py[i]:
             cross_exp_pass_counter += 1
 
     if pass_counter == ne and cross_exp_pass_counter == ne:

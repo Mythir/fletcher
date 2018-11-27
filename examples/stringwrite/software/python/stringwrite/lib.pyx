@@ -23,7 +23,6 @@ from libcpp cimport bool as cpp_bool
 import numpy as np
 cimport numpy as np
 import pandas as pd
-from pyarrow.lib cimport *
 
 
 import timeit
@@ -49,7 +48,6 @@ class Timer:
 cdef extern from "cpp/stringwrite.h" nogil:
     shared_ptr[vector[int32_t]] genRandomLengths(int32_t amount, uint32_t min, uint32_t mask, int32_t *total)
     shared_ptr[vector[char]] genRandomValues(const shared_ptr[vector[int32_t]] &lengths, int32_t amount)
-    shared_ptr[CArray] deserializeToArrow(const int32_t* lengths, const uint8_t* values, int32_t num_strings, int32_t num_chars)
 
 
 cpdef get_random_lengths_and_values(amount, min_len, len_msk):
@@ -73,14 +71,6 @@ cpdef get_random_lengths_and_values(amount, min_len, len_msk):
     memcpy(<void*> values_numpy_pointer, <const void*> values_vector_pointer, total_chars)
 
     return np_lengths, np_values
-
-cpdef deserialize_to_arrow(np_lengths, np_values):
-    cdef const int32_t[:] lengths_view = np_lengths
-    cdef const uint8_t[:] values_view = np_values
-    cdef const int32_t *lengths = &lengths_view[0]
-    cdef const uint8_t* values = &values_view[0]
-
-    return pyarrow_wrap_array(deserializeToArrow(lengths, values, np_lengths.size, np_values.size))
 
 
 cpdef deserialize_to_list(np_lengths, np_values):

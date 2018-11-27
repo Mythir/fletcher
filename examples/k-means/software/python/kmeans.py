@@ -14,7 +14,6 @@
 
 import gc
 import timeit
-import pyarrow as pa
 import numpy as np
 import copy
 import sys
@@ -88,53 +87,6 @@ def numpy_kmeans_python(points, centroids, iteration_limit):
     return centroids
 
 
-def arrow_kmeans_python(batch, centroids, iteration_limit):
-    num_centroids = len(centroids)
-    dimensionality = len(centroids[0])
-    num_rows = batch.num_rows
-    points = batch.column(0)
-
-    centroids_old = []
-    iteration = 0
-
-    while not np.array_equal(centroids_old, centroids) and iteration < iteration_limit:
-        accumulators = [[0 for i in range(dimensionality)] for j in range(num_centroids)]
-        counters = [0] * num_centroids
-
-        for n in range(num_rows):
-            # Determine closest centroid for point
-            closest = 0
-            min_distance = sys.maxsize
-            for c in range(num_centroids):
-                # Get distance to current centroid
-                distance = 0
-                for d in range(dimensionality):
-                    dim_distance = points[n][d].as_py() - centroids[c][d]
-                    distance += dim_distance * dim_distance
-
-                if distance <= min_distance:
-                    closest = c
-                    min_distance = distance
-
-            # Update counters of closest centroid
-            counters[closest] += 1
-            for d in range(dimensionality):
-                accumulators[closest][d] += points[n][d].as_py()
-
-        centroids_old = copy.deepcopy(centroids)
-        # Calculate new centroids
-        for c in range(num_centroids):
-            for d in range(dimensionality):
-                if accumulators[c][d] >= 0:
-                    centroids[c][d] = accumulators[c][d] // counters[c]
-                else:
-                    centroids[c][d] = -(abs(accumulators[c][d]) // counters[c])
-
-        iteration += 1
-
-    return centroids
-
-
 def create_points(num_points, dim, element_max):
     """Create the points for use in k-means algorithm
 
@@ -149,15 +101,6 @@ def create_points(num_points, dim, element_max):
     """
     np.random.seed(42)
     return np.random.randint(-element_max, element_max, size=(num_points, dim))
-
-
-def create_record_batch_from_list(list_points):
-    arpoints = pa.array(list_points, type=pa.list_(pa.int64()))
-
-    field = pa.field("points", pa.list_(pa.field("coord", pa.int64(), False)), False)
-    schema = pa.schema([field])
-
-    return pa.RecordBatch.from_arrays([arpoints], schema)
 
 
 if __name__ == "__main__":
@@ -220,26 +163,6 @@ if __name__ == "__main__":
     print(numpy_points.dtype)
     list_points = numpy_points.tolist()
 
-    for i in range(ne):
-        t.start()
-        batch_points_from_list = create_record_batch_from_list(list_points)
-        t.stop()
-        t_naser.append(t.seconds())
-
-        t.start()
-        numpy_copy = np.copy(numpy_points)
-        batch_points = kmeans.create_record_batch_from_numpy(numpy_copy)
-        t.stop()
-        t_npser.append(t.seconds())
-
-    print("Total serialization time for {ne} runs".format(ne=ne))
-    print("Native to arrow serialization time: " + str(sum(t_naser)))
-    print("Numpy to arrow serialization time (including one copy): " + str(sum(t_npser)))
-    print()
-    print("Average serialization times:")
-    print("Native to arrow serialization time: " + str(sum(t_naser)/ne))
-    print("Numpy to arrow serialization time (including one copy): " + str(sum(t_npser)/ne))
-
     # Determine starting centroids
     list_centroids = []
     for i in range(num_centroids):
@@ -247,14 +170,6 @@ if __name__ == "__main__":
     print(list_centroids)
 
     numpy_centroids = np.array(list_centroids)
-
-    batch_size = 0
-    column = batch_points.column(0)
-    for buffer in column.buffers():
-        if buffer is not None:
-            batch_size += buffer.size
-
-    print("Size of Arrow RecordBatch: {size}".format(size=batch_size))
 
     # Benchmarking
     for i in range(ne):
@@ -304,7 +219,7 @@ if __name__ == "__main__":
         # Arrow k-means using Cython wrapped C++ (multi core)
         numpy_centroids_copy = copy.deepcopy(numpy_centroids)
         t.start()
-        r_arcpp_omp.append(kmeans.arrow_kmeans_cpp_omp(batch_points, numpy_centroids_copy, iteration_limit))
+        #r_arcpp_omp.append(kmeans.arrow_kmeans_cpp_omp(batch_points, numpy_centroids_copy, iteration_limit))
         t.stop()
         t_arcpp_omp.append(t.seconds())
 
@@ -384,13 +299,14 @@ if __name__ == "__main__":
     # print(r_fpga[0])
 
     # Todo: Temporary shortcut
-    r_nppy = r_arcpp_omp
-    r_arpy = r_arcpp_omp
-    r_napy = r_arcpp_omp
-    r_arcpp = r_arcpp_omp
-    r_npcpp = r_arcpp_omp
-    r_npcy = r_arcpp_omp
-    r_fpga = r_arcpp_omp
+    r_nppy = r_npcpp_omp
+    r_arpy = r_npcpp_omp
+    r_napy = r_npcpp_omp
+    r_arcpp = r_npcpp_omp
+    r_npcpp = r_npcpp_omp
+    r_npcy = r_npcpp_omp
+    r_fpga = r_npcpp_omp
+    r_arcpp_omp = r_npcpp_omp
 
     # Check correctness of results
     if np.array_equal(r_nppy, r_npcy) \
