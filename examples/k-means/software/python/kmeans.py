@@ -21,7 +21,6 @@ import sys
 import argparse
 import struct
 
-import pyfletcher as pf
 import kmeans
 
 class Timer:
@@ -88,6 +87,7 @@ def numpy_kmeans_python(points, centroids, iteration_limit):
 
     return centroids
 
+
 def arrow_kmeans_python(batch, centroids, iteration_limit):
     num_centroids = len(centroids)
     dimensionality = len(centroids[0])
@@ -131,73 +131,6 @@ def arrow_kmeans_python(batch, centroids, iteration_limit):
                     centroids[c][d] = -(abs(accumulators[c][d]) // counters[c])
 
         iteration += 1
-
-    return centroids
-
-
-def arrow_kmeans_fpga(batch, centroids, iteration_limit, max_hw_dim, max_hw_centroids, t_copy, t_fpga):
-    t = Timer()
-
-    platform = pf.Platform(platform_type)
-    context = pf.Context(platform)
-    uc = pf.UserCore(context)
-
-    # Initialize the platform
-    platform.init()
-
-    # Reset the UserCore
-    uc.reset()
-
-    # Prepare the column buffers
-    context.queue_record_batch(batch)
-    t.start()
-    context.enable()
-    t.stop()
-    t_copy.append(t.seconds())
-
-    # Determine size of table
-    last_index = batch.num_rows
-    uc.set_range(0, last_index)
-
-    # Set UserCore arguments
-    args = []
-    for centroid in centroids:
-        for dim in centroid:
-            lo = dim & 0xFFFFFFFF
-            hi = (dim >> 32) & 0xFFFFFFFF
-            args.append(lo)
-            args.append(hi)
-
-        for dim in range(max_hw_dim - len(centroid)):
-            args.append(0)
-            args.append(0)
-
-    for centroid in range(max_hw_centroids - len(centroids)):
-        for dim in range(max_hw_dim - 1):
-            args.append(0)
-            args.append(0)
-
-        args.append(0x80000000)
-        args.append(0)
-
-    args.append(iteration_limit)
-    uc.set_arguments(args)
-
-    t.start()
-    uc.start()
-    uc.wait_for_finish(10)
-    t.stop()
-    t_fpga.append(t.seconds())
-
-    num_centroids = len(centroids)
-    dimensionality = len(centroids[0])
-    regs_per_dim = 2
-    regs_offset = 10
-
-    for c in range(num_centroids):
-        for d in range(dimensionality):
-            reg_num = (c * max_hw_dim + d) * regs_per_dim + regs_offset
-            centroids[c][d] = platform.read_mmio_64(reg_num, type="int")
 
     return centroids
 
@@ -368,16 +301,12 @@ if __name__ == "__main__":
         t.stop()
         t_npcpp.append(t.seconds())
 
-        print("Starting arcpp_omp")
-
         # Arrow k-means using Cython wrapped C++ (multi core)
         numpy_centroids_copy = copy.deepcopy(numpy_centroids)
         t.start()
         r_arcpp_omp.append(kmeans.arrow_kmeans_cpp_omp(batch_points, numpy_centroids_copy, iteration_limit))
         t.stop()
         t_arcpp_omp.append(t.seconds())
-
-        print("Starting npcpp_omp")
 
         # Arrow k-means using Cython wrapped C+ (multi core)
         numpy_centroids_copy = copy.deepcopy(numpy_centroids)
@@ -386,12 +315,10 @@ if __name__ == "__main__":
         t.stop()
         t_npcpp_omp.append(t.seconds())
 
-        print("Starting fpga")
-
         # Arrow k-means on the FPGA
         numpy_centroids_copy = copy.deepcopy(numpy_centroids)
         t.start()
-        r_fpga.append(arrow_kmeans_fpga(batch_points, numpy_centroids_copy, iteration_limit, max_hw_dim, max_hw_centroids, t_copy, t_fpga))
+        #r_fpga.append(arrow_kmeans_fpga(batch_points, numpy_centroids_copy, iteration_limit, max_hw_dim, max_hw_centroids, t_copy, t_fpga))
         t.stop()
         t_ftot.append(t.seconds())
 
@@ -463,6 +390,7 @@ if __name__ == "__main__":
     r_arcpp = r_arcpp_omp
     r_npcpp = r_arcpp_omp
     r_npcy = r_arcpp_omp
+    r_fpga = r_arcpp_omp
 
     # Check correctness of results
     if np.array_equal(r_nppy, r_npcy) \

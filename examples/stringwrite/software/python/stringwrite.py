@@ -21,7 +21,6 @@ import sys
 import argparse
 import pandas as pd
 
-import pyfletcher as pf
 import stringwrite
 
 

@@ -18,7 +18,6 @@ import pandas as pd
 import pyarrow as pa
 import argparse
 import numpy as np
-import pyfletcher as pf
 
 import filter_custom
 
@@ -143,44 +142,6 @@ def get_filter_output_rb(offsets_buffer_size, values_buffer_size):
     array = pa.StringArray.from_buffers(string_array_length, offsets_buffer, values_buffer)
 
     return pa.RecordBatch.from_arrays([array], get_filter_write_schema())
-
-
-def filter_record_batch_fpga(batch_in, zip_code, platform_type, offsets_buffer_out_size, values_buffer_out_size, t_copy,
-                             t_fpga, t_d2h):
-    t = Timer()
-    platform = pf.Platform(platform_type)
-    context = pf.Context(platform)
-    uc = pf.UserCore(context)
-
-    batch_out = get_filter_output_rb(offsets_buffer_out_size, values_buffer_out_size)
-
-    platform.init()
-
-    context.queue_record_batch(batch_in)
-    context.queue_record_batch(batch_out)
-
-    uc.reset()
-    t.start()
-    context.enable()
-    t.stop()
-    t_copy.append(t.seconds())
-    uc.set_range(0, batch_in.num_rows)
-
-    t.start()
-    uc.start()
-    uc.wait_for_finish(10)
-    t.stop()
-    t_fpga.append(t.seconds())
-
-    t.start()
-    platform.copy_device_to_host(context.get_buffer_device_address(3, 0), offsets_buffer_out_size,
-                                 batch_out.column(0).buffers()[1])
-    platform.copy_device_to_host(context.get_buffer_device_address(3, 1), values_buffer_out_size,
-                                 batch_out.column(0).buffers()[2])
-    t.stop()
-    t_d2h.append(t.seconds())
-
-    return batch_out
 
 
 if __name__ == "__main__":
