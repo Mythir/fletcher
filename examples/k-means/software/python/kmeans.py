@@ -315,6 +315,14 @@ if __name__ == "__main__":
 
     numpy_centroids = np.array(list_centroids)
 
+    batch_size = 0
+    column = batch_points.column(0)
+    for buffer in column.buffers():
+        if buffer is not None:
+            batch_size += buffer.size
+
+    print("Size of Arrow RecordBatch: {size}".format(size=batch_size))
+
     # Benchmarking
     for i in range(ne):
         print("Starting experiment {i}".format(i=i))
