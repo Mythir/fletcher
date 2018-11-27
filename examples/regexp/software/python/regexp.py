@@ -19,6 +19,7 @@ import re
 import pandas as pd
 import pyarrow as pa
 import pyfletcher as pf
+import multiprocessing as mp
 
 # Add pyre2 to the Python 3 compatibility wall of shame
 __builtins__.basestring = str
@@ -128,6 +129,27 @@ def add_matches_cpu_re2(strings, regexes):
     return matches
 
 
+def add_matches_cpu_re2_mp(strings):
+    # Regular expressions to match in input file
+    regexes = [".*(?i)bird.*", ".*(?i)bunny.*", ".*(?i)cat.*", ".*(?i)dog.*", ".*(?i)ferret.*", ".*(?i)fish.*",
+               ".*(?i)gerbil.*", ".*(?i)hamster.*", ".*(?i)horse.*", ".*(?i)kitten.*", ".*(?i)lizard.*",
+               ".*(?i)mouse.*", ".*(?i)puppy.*", ".*(?i)rabbit.*", ".*(?i)rat.*", ".*(?i)turtle.*"]
+    progs = []
+    matches = []
+
+    for regex in regexes:
+        progs.append(re2.compile(regex))
+
+    for prog in progs:
+        result = 0
+        for string in strings:
+            if prog.test_fullmatch(string):
+                result += 1
+        matches.append(result)
+
+    return matches
+
+
 def add_matches_cpu_re(strings, regexes):
     progs = []
     matches = []
@@ -209,12 +231,15 @@ if __name__ == "__main__":
                         help="Path to file with strings to search through")
     parser.add_argument("--platform_type", dest="platform_type", default="echo", choices=["echo", "aws"],
                         help="Type of FPGA platform")
+    parser.add_argument("--num_proc", dest="num_proc", default=8,
+                        help="Number of processes for Pyre2 mp")
     args = parser.parse_args()
 
     # Parsed args
     ne = int(args.ne)
     input_file = args.input_file
     platform_type = args.platform_type
+    num_proc = int(args.num_proc)
 
     # Regular expressions to match in input file
     regexes = [".*(?i)bird.*", ".*(?i)bunny.*", ".*(?i)cat.*", ".*(?i)dog.*", ".*(?i)ferret.*", ".*(?i)fish.*",
@@ -229,6 +254,7 @@ if __name__ == "__main__":
     t_py_pyre = []
     t_pa_pyre2 = []
     t_py_pyre2 = []
+    t_py_pyre2_mp = []
     t_py_cy_pyre2 = []
     t_ar_pyre2 = []
     t_ar_cppre = []
@@ -245,6 +271,7 @@ if __name__ == "__main__":
     m_py_pyre = []
     m_pa_pyre2 = []
     m_py_pyre2 = []
+    m_py_pyre2_mp = []
     m_py_cy_pyre2 = []
     m_ar_pyre2 = []
     m_ar_cppre = []
@@ -280,31 +307,38 @@ if __name__ == "__main__":
 
     for e in range(ne):
         print("Starting experiment {i}".format(i=e))
-        # Match Python list on CPU using re (marginal performance improvement most likely possible with Cython)
+        # Match Python list on CPU using re
         t.start()
         #m_py_pyre.append(add_matches_cpu_re(strings_native, regexes))
         t.stop()
         t_py_pyre.append(t.seconds())
 
-        # Match Pandas series on CPU using re (marginal performance improvement most likely possible with Cython)
+        # Match Pandas series on CPU using re
         t.start()
         #m_pa_pyre.append(add_matches_cpu_re(strings_pandas, regexes))
         t.stop()
         t_pa_pyre.append(t.seconds())
 
-        # Match Python list on CPU using Pyre2 (marginal performance improvement most likely possible with Cython)
+        # Match Python list on CPU using Pyre2
         t.start()
-        m_py_pyre2.append(add_matches_cpu_re2(strings_native, regexes))
+        #m_py_pyre2.append(add_matches_cpu_re2(strings_native, regexes))
         t.stop()
         t_py_pyre2.append(t.seconds())
 
+        # Match Python list on CPU using Pyre2
+        t.start()
+        n = len(strings_native) // num_proc
+        pool = mp.Pool(processes=num_proc)
+        match_per_proc = pool.map(add_matches_cpu_re2_mp, (strings_native[x:x + n] for x in range(0, len(strings_native), n)))
+        m_py_pyre2_mp.append([sum(x) for x in zip(*match_per_proc)])
+        t.stop()
+        t_py_pyre2_mp.append(t.seconds())
+
         # Match Python list on CPU using Pyre2 anc cython
         t.start()
-        m_py_cy_pyre2.append(re2_arrow.add_matches_cython_re2(strings_native, regexes))
+        #m_py_cy_pyre2.append(re2_arrow.add_matches_cython_re2(strings_native, regexes))
         t.stop()
         t_py_cy_pyre2.append(t.seconds())
-
-        print("Starting pa_pyre2")
 
         # Match Pandas series on CPU using Pyre2 (marginal performance improvement most likely possible with Cython)
         t.start()
@@ -320,11 +354,9 @@ if __name__ == "__main__":
 
         # Match Arrow array on CPU (with Cython wrapped CPP functions)
         t.start()
-        m_ar_cppre.append(re2_arrow.add_matches_cpp_arrow(rb.column(0), regexes))
+        #m_ar_cppre.append(re2_arrow.add_matches_cpp_arrow(rb.column(0), regexes))
         t.stop()
         t_ar_cppre.append(t.seconds())
-
-        print("Starting arcpp_omp")
 
         # Match Arrow array on CPU (with Cython wrapped CPP OMP functions)
         t.start()
@@ -332,11 +364,9 @@ if __name__ == "__main__":
         t.stop()
         t_ar_cppre_omp.append(t.seconds())
 
-        print("Starting fpga")
-
         # Match Arrow array on FPGA
         t.start()
-        m_fpga.append(add_matches_fpga_arrow(rb, regexes, platform_type, t_copy, t_fpga))
+        #m_fpga.append(add_matches_fpga_arrow(rb, regexes, platform_type, t_copy, t_fpga))
         t.stop()
         t_ftot.append(t.seconds())
 
@@ -344,6 +374,7 @@ if __name__ == "__main__":
         print("Python list on CPU (re): " + str(sum(t_py_pyre)))
         print("Pandas series on CPU (re): " + str(sum(t_pa_pyre)))
         print("Python list on CPU (Pyre2): " + str(sum(t_py_pyre2)))
+        print("Python list on CPU (Pyre2 MP): " + str(sum(t_py_pyre2_mp)))
         print("Python list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2)))
         print("Pandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2)))
         print("Arrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2)))
@@ -357,6 +388,7 @@ if __name__ == "__main__":
         print("Python list on CPU (re): " + str(sum(t_py_pyre)/(e+1)))
         print("Pandas series on CPU (re): " + str(sum(t_pa_pyre)/(e+1)))
         print("Python list on CPU (Pyre2): " + str(sum(t_py_pyre2)/(e+1)))
+        print("Python list on CPU (Pyre2 MP): " + str(sum(t_py_pyre2_mp)/(e+1)))
         print("Python list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2)/(e+1)))
         print("Pandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2)/(e+1)))
         print("Arrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2)/(e+1)))
@@ -371,6 +403,7 @@ if __name__ == "__main__":
         text_file.write("\nPython list on CPU (re): " + str(sum(t_py_pyre)))
         text_file.write("\nPandas series on CPU (re): " + str(sum(t_pa_pyre)))
         text_file.write("\nPython list on CPU (Pyre2): " + str(sum(t_py_pyre2)))
+        text_file.write("\nPython list on CPU (Pyre2 MP): " + str(sum(t_py_pyre2_mp)))
         text_file.write("\nPython list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2)))
         text_file.write("\nPandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2)))
         text_file.write("\nArrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2)))
@@ -384,6 +417,7 @@ if __name__ == "__main__":
         text_file.write("\nPython list on CPU (re): " + str(sum(t_py_pyre) / ne))
         text_file.write("\nPandas series on CPU (re): " + str(sum(t_pa_pyre) / ne))
         text_file.write("\nPython list on CPU (Pyre2): " + str(sum(t_py_pyre2) / ne))
+        text_file.write("\nPython list on CPU (Pyre2 MP): " + str(sum(t_py_pyre2_mp)))
         text_file.write("\nPython list on CPU (Cython Pyre2): " + str(sum(t_py_cy_pyre2) / ne))
         text_file.write("\nPandas series on CPU (Pyre2): " + str(sum(t_pa_pyre2) / ne))
         text_file.write("\nArrow array on CPU (Pyre2): " + str(sum(t_ar_pyre2) / ne))
@@ -397,6 +431,7 @@ if __name__ == "__main__":
     a_py_pyre = [0] * np
     a_pa_pyre = [0] * np
     a_py_pyre2 = [0] * np
+    a_py_pyre2_mp = [0] * np
     a_py_cy_pyre2 = [0] * np
     a_pa_pyre2 = [0] * np
     a_ar_pyre2 = [0] * np
@@ -407,14 +442,19 @@ if __name__ == "__main__":
     # Todo: Temporary shortcut
     m_py_pyre = m_ar_cppre_omp
     m_pa_pyre = m_ar_cppre_omp
-    m_ar_pyre2 = m_ar_cppre_omp
+    m_py_pyre2 = m_ar_cppre_omp
+    m_py_cy_pyre2 = m_ar_cppre_omp
     m_pa_pyre2 = m_ar_cppre_omp
+    m_ar_pyre2 = m_ar_cppre_omp
+    m_ar_cppre = m_ar_cppre_omp
+    m_fpga = m_ar_cppre_omp
 
     for p in range(np):
         for e in range(ne):
             a_py_pyre[p] += m_py_pyre[e][p]
             a_pa_pyre[p] += m_pa_pyre[e][p]
             a_py_pyre2[p] += m_py_pyre2[e][p]
+            a_py_pyre2_mp[p] += m_py_pyre2_mp[e][p]
             a_py_cy_pyre2[p] += m_py_cy_pyre2[e][p]
             a_pa_pyre2[p] += m_pa_pyre2[e][p]
             a_ar_pyre2[p] += m_ar_pyre2[e][p]
@@ -427,7 +467,8 @@ if __name__ == "__main__":
             and (a_pa_pyre2 == a_ar_pyre2) \
             and (a_ar_pyre2 == a_py_pyre) \
             and (a_py_pyre == a_pa_pyre) \
-            and (a_pa_pyre == a_ar_cppre)\
+            and (a_py_pyre2_mp == a_pa_pyre) \
+            and (a_py_pyre2_mp == a_ar_cppre)\
             and (a_ar_cppre == a_ar_cppre_omp)\
             and (a_py_cy_pyre2 == a_ar_cppre_omp) \
             and (a_ar_cppre_omp == a_fpga):
